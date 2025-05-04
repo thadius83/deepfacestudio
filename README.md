@@ -53,13 +53,17 @@ It is intended as a **demo / playground** rather than a hardened production syst
 ---
 
 ## Architecture
+
 ```mermaid
 graph TD
-    UI[Streamlit UI<br/>localhost:8501] -->|HTTP 3900| API[FastAPI DeepFace API<br/>localhost:3900]
-    subgraph docker-compose
+    UI[Streamlit UI
+    localhost:8501] -->|HTTP 3900| API[FastAPI DeepFace API
+    localhost:3900]
+    subgraph containers[Docker Compose]
         UI --- API
     end
-    API --> DB[/reference_db volume/]
+    API --> DB[(Reference DB
+    Volume)]
 ```
 
 ---
@@ -165,17 +169,27 @@ Available tasks
 4. **Compare two photos** – Verify if two images contain the same person
 5. **Find person in group photo** – Search for a specific person in a group
 6. **Analyze attributes** – Detect age, gender, emotion, and race
+
+
    ![Analyze UI](docs/screenshots/webui-analyse.png)
+
+
 7. **Which Parent Do You Look Like** – Compare child's face to parents
+
+
    ![Parent Comparison](docs/screenshots/webui-parents.png)
 
 
 
 ### Identification and Detection
 
+
 ![Face Detection](docs/screenshots/webui-detect.png)
 
+
+
 ![Person Finding](docs/screenshots/webui-find.png)
+
 
 ### Interactive Features
 
