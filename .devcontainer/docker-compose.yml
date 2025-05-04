@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   deepface-dev:
     build:
@@ -10,8 +8,8 @@ services:
         RUNTIME_MODE: ${RUNTIME_MODE:-cpu}
     container_name: deepface-dev
     
-    # Use NVIDIA runtime only when in GPU mode
-    runtime: ${RUNTIME_MODE:-cpu}
+    # Use NVIDIA runtime only when in GPU mode (handled by VSCode based on environment)
+    # runtime: nvidia  # Will be enabled by VS Code when RUNTIME_MODE=gpu
     
     volumes:
       # Mount the entire repository into the container for development
@@ -33,15 +31,8 @@ services:
     # Services will be started manually during development
     command: /bin/sh -c "while sleep 1000; do :; done"
     
-    deploy:
-      resources:
-        # Only apply resource limits in GPU mode
-        reservations:
-          devices:
-            # This will be ignored in CPU mode due to runtime setting
-            - driver: nvidia
-              count: ${GPU_COUNT:-all}
-              capabilities: [gpu]
+    # GPU configuration will be handled by VS Code devcontainer
+    # when RUNTIME_MODE=gpu
 
     # Environment variables
     environment:

@@ -1,8 +1,8 @@
 # Select base image based on runtime mode
 ARG RUNTIME_MODE=cpu
 
-# Use CUDA base image for GPU, standard Python for CPU
-FROM ${RUNTIME_MODE:cpu=python:3.10-bullseye:+nvidia/cuda:11.8.0-runtime-ubuntu22.04}
+# Choose base image based on runtime mode
+FROM python:3.10-bullseye
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \

@@ -7,7 +7,7 @@
   // Configure environment variable for CPU mode
   "containerEnv": {
     // Set to "gpu" to use GPU, "cpu" to run without GPU
-    "RUNTIME_MODE": "${localEnv:RUNTIME_MODE:cpu}"
+    "RUNTIME_MODE": "cpu"
   },
   
   // Extensions to install
