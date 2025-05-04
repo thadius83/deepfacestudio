@@ -71,7 +71,7 @@ def identify_group_ui(api_url: str) -> None:
         
         # Also display the annotated image as fallback
         with st.expander("Static Image (with labels)"):
-            st.image(annotated_img, caption="Identification Results", use_column_width=True)
+            st.image(annotated_img, caption="Identification Results", use_container_width=True)
         
         # Display detailed information for each face
         st.subheader("Detailed Results")
@@ -272,7 +272,7 @@ def identify_within_group_ui(api_url: str) -> None:
             
             # Also show static image as fallback
             with st.expander("Static Image (with labels)"):
-                st.image(annotated_img, caption="Green boxes indicate matches", use_column_width=True)
+                st.image(annotated_img, caption="Green boxes indicate matches", use_container_width=True)
             
             # Display details for matches
             st.subheader("Matching Faces Details")
@@ -286,7 +286,7 @@ def identify_within_group_ui(api_url: str) -> None:
             annotated_img, _ = create_annotated_image(image, processed_faces)
             
             # Display the image
-            st.image(annotated_img, caption="No matching faces found", use_column_width=True)
+            st.image(annotated_img, caption="No matching faces found", use_container_width=True)
         
         # Display detailed results
         with st.expander("View detection details"):
