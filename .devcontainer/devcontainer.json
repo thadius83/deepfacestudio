@@ -15,8 +15,7 @@
   "workspaceFolder": "/workspace",
   
   "mounts": [
-    "source=deepface-reference-db,target=/data/reference_db,type=volume",
-    "source=${localWorkspaceFolder}/deepface_weights,target=/root/.deepface/weights,type=bind"
+    "source=deepface-reference-db,target=/data/reference_db,type=volume"
   ],
   
   "forwardPorts": [3900, 8501],

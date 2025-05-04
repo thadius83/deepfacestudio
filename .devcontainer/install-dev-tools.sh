@@ -58,6 +58,16 @@ echo 'alias start-ui="/usr/local/bin/scripts/start-ui.sh"' >> /etc/bash.bashrc
 mkdir -p /root/.deepface/weights
 chmod -R 777 /root/.deepface
 
+# Create the deepface_weights directory in workspace if it doesn't exist
+mkdir -p /workspace/deepface_weights 
+chmod -R 777 /workspace/deepface_weights
+
+# If weights directory is not already a symlink, and it's empty, link it to the workspace dir
+if [ ! -L /root/.deepface/weights ] && [ ! "$(ls -A /root/.deepface/weights)" ]; then
+  rm -rf /root/.deepface/weights
+  ln -s /workspace/deepface_weights /root/.deepface/weights
+fi
+
 # clean up
 pip cache purge
 apt-get autoremove -y
