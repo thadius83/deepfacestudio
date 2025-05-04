@@ -23,10 +23,10 @@ def identify_group_ui(api_url: str) -> None:
     """)
     
     # Form inputs
-    img_file = st.file_uploader("Group photo", type=SUPPORTED_FORMATS)
+    img_file = st.file_uploader("Group photo", type=SUPPORTED_FORMATS, key="identify_group_uploader")
     
     # Form validation
-    if not img_file or not st.button("Detect & Match"):
+    if not img_file or not st.button("Detect & Match", key="identify_group_button"):
         return
     
     # Process identification
@@ -132,7 +132,7 @@ def identify_within_group_ui(api_url: str) -> None:
         group = st.file_uploader("Group photo to search in", type=SUPPORTED_FORMATS, key="group")
     
     # Form validation
-    if not group or not reference or not st.button("Find in Group"):
+    if not group or not reference or not st.button("Find in Group", key="find_in_group_button"):
         return
     
     # Process identification

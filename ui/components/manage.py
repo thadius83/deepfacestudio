@@ -57,7 +57,7 @@ def manage_references_ui(api_url: str) -> None:
         return
     
     # Add refresh button
-    if st.button("🔄 Refresh Database"):
+    if st.button("🔄 Refresh Database", key="refresh_database_button"):
         st.rerun()
     
     # Display each label with its photos
