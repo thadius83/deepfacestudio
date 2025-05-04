@@ -1,0 +1,9 @@
+deepface==0.0.93        # latest stable (Mar 2024) :contentReference[oaicite:0]{index=0}
+fastapi==0.110.2
+uvicorn[standard]==0.29.0
+opencv-python-headless==4.10.0.82
+python-multipart==0.0.9
+numpy
+tf-keras
+tensorflow[and-cuda]
+pillow

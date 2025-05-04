@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  deepface-api:
+    build:
+      context: ./backend
+      args:
+        BUILD_MODE: dev  # change to "dev" to enable BuildKit caching for faster dev iteration
+    container_name: deepface-api
+    runtime: nvidia
+    ports:
+      - "3900:3900"
+    volumes:
+      - reference_db:/data/reference_db             # persistent DB
+      - ./deepface_weights:/root/.deepface/weights  # persist DeepFace model weights
+    deploy:
+      resources:
+        reservations:
+          devices:                                  # GPU access (Compose spec) :contentReference[oaicite:1]{index=1}
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  deepface-ui:
+    build: ./ui
+    container_name: deepface-ui
+    environment:
+      - API_URL=http://deepface-api:3900
+    ports:
+      - "8501:8501"
+    depends_on:
+      - deepface-api
+
+volumes:
+  reference_db:

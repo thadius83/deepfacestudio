@@ -1,0 +1,168 @@
+<!-- PROJECT BANNER -->
+<h1 align="center">DeepFace Studio</h1>
+<p align="center">
+  <strong>GPU-enabled demonstration platform for the <a href="https://github.com/serengil/deepface">DeepFace</a> library</strong><br/>
+  <a href="https://github.com/thadius83/deepfacestudio">github.com/thadius83/deepfacestudio</a>
+</p>
+<p align="center">
+  <!-- Badges – update once repository is public -->
+  <img src="https://img.shields.io/github/stars/thadius83/deepfacestudio?style=flat&color=yellow" alt="Stars"/>
+  <img src="https://img.shields.io/github/license/thadius83/deepfacestudio" alt="License"/>
+  <img src="https://img.shields.io/docker/pulls/thadius83/deepface-api?logo=docker" alt="Docker Pulls"/>
+</p>
+
+---
+
+## Table of Contents
+1. [About](#about)  
+2. [Features](#features)  
+3. [Architecture](#architecture)  
+4. [Quick Start](#quick-start)  
+5. [Configuration](#configuration)  
+6. [Using the API](#using-the-api)  
+7. [Using the UI](#using-the-ui)  
+8. [Development Workflow](#development-workflow)  
+9. [Prerequisites](#prerequisites)  
+10. [License](#license)  
+11. [Acknowledgements](#acknowledgements)
+
+---
+
+## About
+**DeepFace Studio** packages DeepFace into a two-container stack:
+
+* **FastAPI service** – exposes verification, identification & attribute-analysis endpoints.  
+* **Streamlit UI** – a drag-and-drop web front-end for quick experiments.
+
+It is intended as a **demo / playground** rather than a hardened production system.
+
+---
+
+## Features
+* 🔥 **GPU acceleration** through NVIDIA Container Runtime  
+* 🖼️ Face *verify*, *find / identify*, *analyze* (age / gender / emotion / race)  
+* 🌐 **REST API** documented with Swagger (`/docs`)
+* 🪄 **Streamlit UI** with interactive hover effects  
+* 💾 Persistent reference database & model weights via Docker volumes  
+* ⚡ Opt-in fast rebuilds for development (`BUILD_MODE=dev`)
+
+---
+
+## Architecture
+```mermaid
+graph TD
+    UI[Streamlit UI<br/>localhost:8501] -->|HTTP 3900| API[FastAPI DeepFace API<br/>localhost:3900]
+    subgraph docker-compose
+        UI --- API
+    end
+    API --> DB[/reference_db volume/]
+```
+
+---
+
+## Quick Start
+```bash
+# clone & launch
+git clone https://github.com/thadius83/deepfacestudio.git
+cd deepfacestudio
+docker compose up -d --build   # first run downloads model weights
+
+# visit the UI
+open http://localhost:8501        # or <CTRL/CMD>-click
+
+# stop & clean
+docker compose down
+```
+> **Note** – Requires an NVIDIA GPU and `nvidia-container-toolkit` for CUDA.
+
+---
+
+## Configuration
+`backend/app/config.py` centralises tunables.  
+Modify and rebuild, or extend the image with environment overrides.
+
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
+| `MODEL_NAME` | `"Facenet"` | Backbone face-recognition model |
+| `DETECTOR_BACKEND` | `"retinaface"` | Face-detector module |
+| `IDENTITY_THRESHOLD` | `0.60` | Cosine / Euclidean threshold |
+| `REFERENCE_DIR` | `/data/reference_db` | Docker volume mount path |
+| `ALLOWED_EXT` | `.jpg .jpeg .png .webp` | Accepted upload types |
+
+---
+
+## Using the API
+Swagger docs: `http://localhost:3900/docs`
+
+```bash
+# Add reference images for label "Alice"
+curl -F "files=@alice1.jpg" -F "files=@alice2.jpg" \
+     http://localhost:3900/reference/Alice
+
+# Identify faces in a group photo
+curl -F "file=@group.jpg" http://localhost:3900/identify
+
+# Verify two images contain the same person
+curl -F "img1=@person1.jpg" -F "img2=@person2.jpg" \
+     http://localhost:3900/compare
+
+# Analyze facial attributes
+curl -F "file=@portrait.jpg" http://localhost:3900/analyze
+```
+
+---
+
+## Using the UI
+![UI screenshot](docs/screenshots/ui_home.png) <!-- replace with actual screenshot -->
+
+The Streamlit UI offers seven task types accessible from the sidebar:
+
+1. **Add reference photos** – Upload one or more images under a name/label
+2. **Manage reference database** – View, search, and delete existing references
+3. **Identify in group photo** – Find all known faces in a group photo
+4. **Compare two photos** – Verify if two images contain the same person
+5. **Find person in group photo** – Search for a specific person in a group
+6. **Analyze attributes** – Detect age, gender, emotion, and race
+7. **Which Parent Do You Look Like** – Compare child's face to parents
+
+### Interactive Features
+
+The UI includes mouse hover interactions for enhanced UX:
+- **Hover over detected faces** to see detailed information pop-ups
+- **Green boxes** indicate verified matches to reference database
+- **Yellow boxes** indicate detected faces without matches
+- **Click expanders** below images to view additional technical details
+
+---
+
+## Development Workflow
+```bash
+# Enable Docker BuildKit cache for rapid iteration
+docker compose build --build-arg BUILD_MODE=dev
+
+# Hot-reload API (inside container)
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 3900
+# Hot-reload Streamlit UI
+streamlit run ui/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+```
+
+
+---
+
+## Prerequisites
+* **Docker ≥ 20.10** and **Docker Compose v2**  
+* **NVIDIA GPU** with recent drivers  
+* **nvidia-container-toolkit** – [installation guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+
+---
+
+## License
+This repository is licensed under the **MIT License**.  
+DeepFace itself also uses MIT, but it bundles models & detectors with their own licenses – review them for production deployments.
+
+---
+
+## Acknowledgements
+* [**DeepFace**](https://github.com/serengil/deepface) by Sefik & contributors  
+* Inspired by numerous Streamlit + FastAPI starter projects  
+* Badges courtesy of <https://shields.io>
