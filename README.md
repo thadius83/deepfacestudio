@@ -172,8 +172,13 @@ streamlit run ui/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
 ---
 
 ## License
-This repository is licensed under the **MIT License**.  
-DeepFace itself also uses MIT, but it bundles models & detectors with their own licenses – review them for production deployments.
+This repository is licensed under the **MIT License** - see [LICENSE](LICENSE) for more details.
+
+DeepFace wraps some external face recognition models: VGG-Face, Facenet (both 128d and 512d), OpenFace, DeepFace, DeepID, ArcFace, Dlib, SFace, GhostFaceNet and Buffalo_L. Besides, age, gender and race/ethnicity models were trained on the backbone of VGG-Face with transfer learning. 
+
+Similarly, DeepFace wraps many face detectors: OpenCv, Ssd, Dlib, MtCnn, Fast MtCnn, RetinaFace, MediaPipe, YuNet, Yolo and CenterFace. Finally, DeepFace is optionally using face anti spoofing to determine the given images are real or fake.
+
+License types will be inherited when you intend to utilize those models. Please check the license types of those models for production purposes.
 
 ---
 
