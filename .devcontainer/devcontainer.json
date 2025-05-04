@@ -1,0 +1,46 @@
+{
+  "name": "DeepFace Studio Dev",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "deepface-dev",
+  "workspaceFolder": "/workspace",
+  
+  // Configure environment variable for CPU mode
+  "containerEnv": {
+    // Set to "gpu" to use GPU, "cpu" to run without GPU
+    "RUNTIME_MODE": "${localEnv:RUNTIME_MODE:cpu}"
+  },
+  
+  // Extensions to install
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
+      }
+    }
+  },
+  
+  // Run post-create commands
+  "postCreateCommand": "pip install --no-cache-dir -r backend/requirements.txt -r ui/requirements.txt",
+  
+  // Features to add to the dev container
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.10"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+  
+  // User settings to prevent permission issues
+  "remoteUser": "vscode"
+}

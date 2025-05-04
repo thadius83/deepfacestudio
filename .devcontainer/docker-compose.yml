@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  deepface-dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        # Pass the runtime mode to the build
+        RUNTIME_MODE: ${RUNTIME_MODE:-cpu}
+    container_name: deepface-dev
+    
+    # Use NVIDIA runtime only when in GPU mode
+    runtime: ${RUNTIME_MODE:-cpu}
+    
+    volumes:
+      # Mount the entire repository into the container for development
+      - ..:/workspace:cached
+      
+      # Mount a volume for reference database persistence
+      - reference_db:/data/reference_db
+      
+      # Mount a volume for DeepFace weights to avoid re-downloading
+      - ../deepface_weights:/root/.deepface/weights
+      
+    ports:
+      # API port
+      - "3900:3900"
+      # Streamlit UI port
+      - "8501:8501"
+    
+    # Command to keep the container running without starting services
+    # Services will be started manually during development
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    
+    deploy:
+      resources:
+        # Only apply resource limits in GPU mode
+        reservations:
+          devices:
+            # This will be ignored in CPU mode due to runtime setting
+            - driver: nvidia
+              count: ${GPU_COUNT:-all}
+              capabilities: [gpu]
+
+    # Environment variables
+    environment:
+      - RUNTIME_MODE=${RUNTIME_MODE:-cpu}
+      - PYTHONPATH=/workspace
+      - API_URL=http://localhost:3900
+
+volumes:
+  reference_db:
+    # Named volume to persist reference database
