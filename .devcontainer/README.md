@@ -2,26 +2,47 @@
 
 This directory contains configuration for using DeepFace Studio in a development container with VS Code or DevPod.
 
+## Setup Options
+
+Two container configurations are available:
+
+1. **GPU Version** (branch: `feature/devcontainer`) - For development with CUDA GPU acceleration
+2. **CPU Version** (branch: `feature/devcontainer-cpu`) - For development on machines without GPUs
+
 ## Setup Overview
 
 The development container provides:
 
-- CUDA 11.8 with cuDNN 8 for GPU acceleration
 - Python 3.10 environment with all dependencies
 - Convenient scripts for starting services
 - Persistent volume for reference database
-- Automatic mounting of model weights
+- Automatic configuration of model weights
 
 ## Prerequisites
 
+### For GPU Version
 - VS Code with Remote-Containers extension or DevPod
-- Docker with NVIDIA Container Toolkit (for GPU support)
+- Docker with NVIDIA Container Toolkit
+- NVIDIA GPU with appropriate drivers
+
+### For CPU Version
+- VS Code with Remote-Containers extension or DevPod
+- Docker
 
 ## Getting Started
 
-1. Open the repository in VS Code or DevPod
-2. When prompted, click "Reopen in Container"
-3. The container will build and install all dependencies (this may take a few minutes)
+1. Choose the appropriate branch:
+   ```bash
+   # For GPU support
+   git checkout feature/devcontainer
+   
+   # For CPU-only (no GPU required)
+   git checkout feature/devcontainer-cpu
+   ```
+
+2. Open the repository in VS Code or DevPod
+3. When prompted, click "Reopen in Container"
+4. The container will build and install all dependencies (this may take a few minutes)
 
 ## Development Workflow
 
@@ -41,8 +62,7 @@ start-ui
 
 Any code changes you make will automatically trigger hot-reloading of both services.
 
-## Container Structure
+## Performance Expectations
 
-- The entire repository is mounted at `/workspace`
-- Reference database persists in a volume at `/data/reference_db`
-- Model weights are mounted from `./deepface_weights` to `/root/.deepface/weights`
+- **GPU Version**: Provides full performance for face detection and recognition
+- **CPU Version**: Will work but with reduced performance; uses more CPU-friendly settings

@@ -3,38 +3,46 @@
 
 set -e
 
+# Detect if we're in CPU mode
+CPU_MODE=${DEEPFACE_CPU_MODE:-false}
+echo "Setting up DeepFace Studio in $([ "$CPU_MODE" = "true" ] && echo "CPU" || echo "GPU") mode"
+
 # update system
 apt-get update
 apt-get upgrade -y
 
-# install Linux tools and add Python 3.10 repository
+# Install common dependencies
 apt-get install -y software-properties-common wget curl git \
-    build-essential libffi-dev gfortran \
+    build-essential libffi-dev \
     libjpeg-dev libpng-dev \
     libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev \
     libavfilter-dev libavformat-dev libavdevice-dev ffmpeg
 
-# Add deadsnakes PPA and install Python 3.10
-add-apt-repository ppa:deadsnakes/ppa -y
-apt-get update
-apt-get install -y python3.10 python3.10-dev python3.10-venv python3.10-distutils
-
-# Create symbolic links to make python3.10 the default python3
-update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
-update-alternatives --set python3 /usr/bin/python3.10
-update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
-update-alternatives --set python /usr/bin/python3.10
-
-# Install pip for Python 3.10
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-python3.10 get-pip.py
-rm get-pip.py
-
-# install Python packages
+# Install pip and upgrade it
 python -m pip install --upgrade pip
 
-# Install deepface requirements
-pip install --no-cache-dir -r backend/requirements.txt -r ui/requirements.txt
+# Install deepface requirements with appropriate backends
+if [ "$CPU_MODE" = "true" ]; then
+    # CPU-only installation 
+    echo "Installing CPU-only dependencies"
+    
+    # Modify backend/requirements.txt to use CPU-only tensorflow if it exists
+    if [ -f backend/requirements.txt ]; then
+        # Replace tensorflow-gpu with tensorflow CPU version if present
+        sed -i 's/tensorflow-gpu/tensorflow/g' backend/requirements.txt
+    fi
+    
+    # Install with CPU-specific flags
+    pip install --no-cache-dir -r backend/requirements.txt -r ui/requirements.txt
+    
+    # Configure DeepFace to use CPU-friendly models and detectors
+    echo 'export DEEPFACE_DETECTOR="opencv"' >> /etc/bash.bashrc
+    echo 'export MODEL_NAME="VGG-Face"' >> /etc/bash.bashrc
+else
+    # GPU installation (standard)
+    echo "Installing GPU-enabled dependencies"
+    pip install --no-cache-dir -r backend/requirements.txt -r ui/requirements.txt
+fi
 
 # Install development tools
 pip install --no-cache-dir black flake8 ipython jupyter pylint pytest

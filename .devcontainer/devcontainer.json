@@ -1,14 +1,9 @@
 {
-  "name": "DeepFace Studio Dev",
-  "image": "nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04",
-  "runArgs": [
-    "--gpus=all"
-  ],
+  "name": "DeepFace Studio Dev (CPU)",
+  "image": "python:3.10-bullseye",
   "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/usr/local/cuda/bin",
-    "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64",
-    "XLA_FLAGS": "--xla_gpu_cuda_data_dir=/usr/local/cuda",
-    "PYTHONPATH": "/workspace"
+    "PYTHONPATH": "/workspace",
+    "DEEPFACE_CPU_MODE": "true"
   },
   
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
