@@ -53,11 +53,25 @@ It is intended as a **demo / playground** rather than a hardened production syst
 ---
 
 ## Architecture
-```mermaid
-graph TD
-    UI[Streamlit UI] -->|HTTP 3900| API[FastAPI Service]
-    UI --- API
-    API --> DB[(Reference DB)]
+
+The application consists of two Docker containers that work together:
+
+```
+  +------------------+        +------------------+
+  |                  |        |                  |
+  |   Streamlit UI   |------->|   FastAPI API    |
+  |  (localhost:8501)|   HTTP |  (localhost:3900)|
+  |                  |   3900 |                  |
+  +------------------+        +---------+--------+
+                                        |
+                                        |
+                                        v
+                              +---------+--------+
+                              |                  |
+                              |   Reference DB   |
+                              |     (Volume)     |
+                              |                  |
+                              +------------------+
 ```
 
 ---
