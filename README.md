@@ -5,7 +5,7 @@
   <a href="https://github.com/thadius83/deepfacestudio">github.com/thadius83/deepfacestudio</a>
 </p>
 <p align="center">
-  <!-- Badges – update once repository is public -->
+
   <img src="https://img.shields.io/github/stars/thadius83/deepfacestudio?style=flat&color=yellow" alt="Stars"/>
   <img src="https://img.shields.io/github/license/thadius83/deepfacestudio" alt="License"/>
   <img src="https://img.shields.io/docker/pulls/thadius83/deepface-api?logo=docker" alt="Docker Pulls"/>
@@ -113,7 +113,7 @@ curl -F "file=@portrait.jpg" http://localhost:3900/analyze
 ---
 
 ## Using the UI
-![UI screenshot](docs/screenshots/ui_home.png) <!-- replace with actual screenshot -->
+![Main UI](docs/screenshots/webui-main.png)
 
 The Streamlit UI offers seven task types accessible from the sidebar:
 
@@ -123,7 +123,13 @@ The Streamlit UI offers seven task types accessible from the sidebar:
 4. **Compare two photos** – Verify if two images contain the same person
 5. **Find person in group photo** – Search for a specific person in a group
 6. **Analyze attributes** – Detect age, gender, emotion, and race
+   ![Analyze UI](docs/screenshots/webui-analyse.png)
 7. **Which Parent Do You Look Like** – Compare child's face to parents
+   ![Parent Comparison](docs/screenshots/webui-parents.png)
+
+### Identification and Detection
+![Face Detection](docs/screenshots/webui-detect.png)
+![Person Finding](docs/screenshots/webui-find.png)
 
 ### Interactive Features
 
