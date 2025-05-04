@@ -28,18 +28,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS to reduce space above title
+# Custom CSS to adjust spacing for title to avoid menu overlap
 st.markdown("""
     <style>
         .main > div {
             padding-top: 1rem;
         }
         .block-container {
-            padding-top: 0rem;
-            margin-top: 0rem;
+            padding-top: 2rem;
+            margin-top: 1rem;
         }
         h1 {
-            margin-top: 0rem !important;
+            margin-top: 1rem !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -48,7 +48,11 @@ def main():
     """Main application entry point."""
     st.title("🔍 DeepFace Suite – Face Recognition & Analysis")
     
-    # Task selection sidebar
+    # Initialize session state for the task selector if it doesn't exist
+    if "task_selection" not in st.session_state:
+        st.session_state.task_selection = "Add reference photos"
+    
+    # Task selection sidebar with explicit key
     task = st.sidebar.radio(
         "Select task",
         (
@@ -58,8 +62,9 @@ def main():
             "Compare two photos", 
             "Find person in group photo",
             "Analyze attributes",
-            "Which Parent Do You Look Like"
-        )
+            "Family Resemblance"
+        ),
+        key="task_selection"  # Add explicit key for session state
     )
     
     # Display contextual help in sidebar
@@ -96,7 +101,7 @@ def main():
         identify_within_group_ui(API_URL)
     elif task == "Analyze attributes":
         analyze_attributes_ui(API_URL)
-    elif task == "Which Parent Do You Look Like":
+    elif task == "Family Resemblance":
         family_resemblance_ui(API_URL)
     else:
         st.error("Unknown task selected. Please choose a valid task from the sidebar.")

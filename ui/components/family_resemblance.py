@@ -16,7 +16,7 @@ def family_resemblance_ui(api_url: str) -> None:
     Args:
         api_url: Base URL for the API
     """
-    st.subheader("Which Parent Do You Look Like?")
+    st.subheader("Family Resemblance")
     
     # Form instructions
     st.write("""
@@ -37,7 +37,7 @@ def family_resemblance_ui(api_url: str) -> None:
         mother_img = st.file_uploader("Upload mother's photo", type=SUPPORTED_FORMATS, key="mother_img")
     
     # Form validation
-    if not father_img or not mother_img or not child_img or not st.button("Analyze Resemblance"):
+    if not father_img or not mother_img or not child_img or not st.button("Analyze Resemblance", key="analyze_resemblance_button"):
         return
     
     # Process comparison

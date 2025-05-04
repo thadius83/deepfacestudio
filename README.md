@@ -184,7 +184,7 @@ Available tasks
    ![Analyze UI](docs/screenshots/webui-analyse.png)
 
 
-7. **Which Parent Do You Look Like** – Compare child's face to parents
+7. **Family Resemblance** – Compare child's face to parents to determine resemblance
 
 
    ![Parent Comparison](docs/screenshots/webui-parents.png)

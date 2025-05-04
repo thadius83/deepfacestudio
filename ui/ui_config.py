@@ -1,6 +1,5 @@
 """Front‑end global settings."""
 import os
 
-# URL where the FastAPI service lives
-# Use localhost in devcontainer, service name in docker-compose
-API_URL = os.getenv("API_URL", "http://localhost:3900")
+# URL where the FastAPI service lives (docker‑compose uses service name)
+API_URL = os.getenv("API_URL", "http://deepface-api:3900")

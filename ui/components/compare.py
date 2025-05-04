@@ -29,7 +29,7 @@ def compare_photos_ui(api_url: str) -> None:
         img2 = st.file_uploader("Photo B", type=SUPPORTED_FORMATS, key="img2")
     
     # Form validation
-    if not img1 or not img2 or not st.button("Compare"):
+    if not img1 or not img2 or not st.button("Compare", key="compare_button"):
         return
     
     # Process comparison

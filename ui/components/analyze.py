@@ -23,10 +23,10 @@ def analyze_attributes_ui(api_url: str) -> None:
     """)
     
     # Form inputs
-    photo = st.file_uploader("Portrait or group photo", type=SUPPORTED_FORMATS)
+    photo = st.file_uploader("Portrait or group photo", type=SUPPORTED_FORMATS, key="analyze_photo_uploader")
     
     # Form validation
-    if not photo or not st.button("Analyze"):
+    if not photo or not st.button("Analyze", key="analyze_button"):
         return
     
     # Process analysis

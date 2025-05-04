@@ -22,15 +22,16 @@ def reference_upload_ui(api_url: str) -> None:
     """)
     
     # Form inputs
-    label = st.text_input("Person label (unique, no spaces)")
+    label = st.text_input("Person label (unique, no spaces)", key="reference_label")
     files = st.file_uploader(
         "Reference image(s)", 
         type=SUPPORTED_FORMATS,
-        accept_multiple_files=True
+        accept_multiple_files=True,
+        key="reference_files"
     )
     
     # Form validation
-    if not st.button("Upload") or not label or not files:
+    if not st.button("Upload", key="upload_reference_button") or not label or not files:
         return
     
     # Process upload
