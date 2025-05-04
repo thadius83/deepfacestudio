@@ -16,7 +16,7 @@ def family_resemblance_ui(api_url: str) -> None:
     Args:
         api_url: Base URL for the API
     """
-    st.subheader("Which Parent Do You Look Like?")
+    st.subheader("Family Resemblance")
     
     # Form instructions
     st.write("""
