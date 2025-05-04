@@ -6,7 +6,7 @@ This directory contains configuration for using DeepFace Studio in a development
 
 Two container configurations are available:
 
-1. **GPU Version** (branch: `feature/devcontainer`) - For development with CUDA GPU acceleration
+1. **GPU Version** (branch: `feature/devcontainer`) - For development with CUDA GPU acceleration **forthcoming**
 2. **CPU Version** (branch: `feature/devcontainer-cpu`) - For development on machines without GPUs
 
 ## Setup Overview
@@ -60,25 +60,12 @@ start-api
 start-ui
 ```
 
-### Method 2: Using direct run scripts (if convenience scripts have import issues)
 
-If you encounter Python import errors with the convenience scripts, use these alternatives:
 
-1. Start the FastAPI backend with PYTHONPATH set:
-```bash
-/workspace/.devcontainer/run-api-pythonpath.sh
-```
-
-2. Start the Streamlit UI (in a new terminal):
-```bash
-/workspace/.devcontainer/run-ui.sh
-```
-
-3. Access the UI at http://localhost:8501 and API at http://localhost:3900
+2. Access the UI at http://localhost:8501 and API at http://localhost:3900
 
 Any code changes you make will automatically trigger hot-reloading of both services.
 
 ## Performance Expectations
 
-- **GPU Version**: Provides full performance for face detection and recognition
 - **CPU Version**: Will work but with reduced performance; uses more CPU-friendly settings
