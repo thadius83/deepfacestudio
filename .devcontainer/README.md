@@ -48,6 +48,8 @@ The development container provides:
 
 Once the container is running, you can:
 
+### Method 1: Using convenience scripts
+
 1. Start the FastAPI backend:
 ```bash
 start-api
@@ -56,6 +58,20 @@ start-api
 2. Start the Streamlit UI (in a new terminal):
 ```bash
 start-ui
+```
+
+### Method 2: Using direct run scripts (if convenience scripts have import issues)
+
+If you encounter Python import errors with the convenience scripts, use these alternatives:
+
+1. Start the FastAPI backend with PYTHONPATH set:
+```bash
+/workspace/.devcontainer/run-api-pythonpath.sh
+```
+
+2. Start the Streamlit UI (in a new terminal):
+```bash
+/workspace/.devcontainer/run-ui.sh
 ```
 
 3. Access the UI at http://localhost:8501 and API at http://localhost:3900
