@@ -102,16 +102,16 @@ def compare_photos_ui(api_url: str) -> None:
             with st.expander("Static Images (with labels)"):
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.image(annotated_img1, caption="Photo A", use_column_width=True)
+                    st.image(annotated_img1, caption="Photo A", use_container_width=True)
                 with col2:
-                    st.image(annotated_img2, caption="Photo B", use_column_width=True)
+                    st.image(annotated_img2, caption="Photo B", use_container_width=True)
         else:
             # Just show the original images
             col1, col2 = st.columns(2)
             with col1:
-                st.image(image1, caption="Photo A", use_column_width=True)
+                st.image(image1, caption="Photo A", use_container_width=True)
             with col2:
-                st.image(image2, caption="Photo B", use_column_width=True)
+                st.image(image2, caption="Photo B", use_container_width=True)
             
             st.warning("No face regions returned from API. Showing original images.")
             

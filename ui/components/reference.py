@@ -45,7 +45,7 @@ def reference_upload_ui(api_url: str) -> None:
             cols = st.columns(min(len(files), 4))
             for i, file in enumerate(files):
                 with cols[i % len(cols)]:
-                    st.image(file, caption=f"{label} - Image {i+1}", use_column_width=True)
+                    st.image(file, caption=f"{label} - Image {i+1}", use_container_width=True)
             
             with st.expander("API Response Details"):
                 display_json(result)

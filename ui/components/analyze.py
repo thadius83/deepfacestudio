@@ -106,7 +106,7 @@ def analyze_attributes_ui(api_url: str) -> None:
         
         # Also show static image as fallback
         with st.expander("Static Image (with labels)"):
-            st.image(annotated_img, caption="Face Analysis Results", use_column_width=True)
+            st.image(annotated_img, caption="Face Analysis Results", use_container_width=True)
         
         # Create summary table
         st.subheader("Analysis Summary")

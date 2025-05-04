@@ -190,7 +190,7 @@ def display_family_comparison(father_img, child_img, mother_img, paternal_distan
     buf.seek(0)
     
     # Display in Streamlit
-    st.image(buf, use_column_width=True)
+    st.image(buf, use_container_width=True)
     
     # Close the figure to free memory
     plt.close(fig)
