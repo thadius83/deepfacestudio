@@ -1,14 +1,17 @@
 <!-- PROJECT BANNER -->
 <h1 align="center">DeepFace Studio</h1>
 <p align="center">
-  <strong>GPU-enabled demonstration platform for the <a href="https://github.com/serengil/deepface">DeepFace</a> library</strong><br/>
+  <strong>GPU‑enabled demonstration platform for the <a href="https://github.com/serengil/deepface">DeepFace</a> library</strong><br/>
   <a href="https://github.com/thadius83/deepfacestudio">github.com/thadius83/deepfacestudio</a>
 </p>
 <p align="center">
-
   <img src="https://img.shields.io/github/stars/thadius83/deepfacestudio?style=flat&color=yellow" alt="Stars"/>
   <img src="https://img.shields.io/github/license/thadius83/deepfacestudio" alt="License"/>
   <img src="https://img.shields.io/docker/pulls/thadius83/deepface-api?logo=docker" alt="Docker Pulls"/>
+  <!-- NEW: CPU‑only DevPod badge -->
+  <a href="https://devpod.sh/open#https://github.com/thadius83/deepfacestudio@feature/devcontainer-cpu">
+    <img src="https://devpod.sh/assets/open-in-devpod.svg" alt="Open in DevPod (CPU only)"/>
+  </a>
 </p>
 
 ---
@@ -17,14 +20,15 @@
 1. [About](#about)  
 2. [Features](#features)  
 3. [Architecture](#architecture)  
-4. [Quick Start](#quick-start)  
-5. [Configuration](#configuration)  
-6. [Using the API](#using-the-api)  
-7. [Using the UI](#using-the-ui)  
-8. [Development Workflow](#development-workflow)  
-9. [Prerequisites](#prerequisites)  
-10. [License](#license)  
-11. [Acknowledgements](#acknowledgements)
+4. [Quick Start (GPU stack)](#quick-start-gpu-stack)  
+5. [Dev Containers (VS Code / DevPod)](#dev-containers-vs-code--devpod)  
+6. [Configuration](#configuration)  
+7. [Using the API](#using-the-api)  
+8. [Using the UI](#using-the-ui)  
+9. [Development Workflow](#development-workflow)  
+10. [Prerequisites](#prerequisites)  
+11. [License](#license)  
+12. [Acknowledgements](#acknowledgements)
 
 ---
 
@@ -60,7 +64,7 @@ graph TD
 
 ---
 
-## Quick Start
+## Quick Start (GPU stack)
 ```bash
 # clone & launch
 git clone https://github.com/thadius83/deepfacestudio.git
@@ -74,6 +78,40 @@ open http://localhost:8501        # or <CTRL/CMD>-click
 docker compose down
 ```
 > **Note** – Requires an NVIDIA GPU and `nvidia-container-toolkit` for CUDA.
+
+---
+
+## Dev Containers (VS Code / DevPod)
+
+| Variant      | Branch                     | GPU Required | Status         |
+| ------------ | -------------------------- | ------------ | -------------- |
+| **CPU‑only** | `feature/devcontainer-cpu` | ✘            | ✅ Ready today  |
+| **GPU**      | `feature/devcontainer`     | ✔            | 🚧 Coming soon |
+
+### Opening in DevPod (CPU‑only)
+
+Click the **"Open in DevPod"** badge at the top of this README *or* use the URL directly:
+
+```
+https://devpod.sh/open#https://github.com/thadius83/deepfacestudio@feature/devcontainer-cpu
+```
+
+This launches a container based on the CPU branch with:
+
+* Python 3.10 + all dependencies
+* Convenience scripts (`start-api`, `start-ui`)
+* Hot‑reloading for both FastAPI and Streamlit
+* Persistent volume for reference data and model weights
+
+#### Manual steps (VS Code or DevPod)
+
+```bash
+# CPU‑only workflow
+git checkout feature/devcontainer-cpu
+
+# open folder in VS Code ↔ Dev Containers extension or DevPod
+# and choose "Reopen in Container"
+```
 
 ---
 
@@ -114,10 +152,12 @@ curl -F "file=@portrait.jpg" http://localhost:3900/analyze
 
 ## Using the UI
 
-
 ![Main UI](docs/screenshots/webui-main.png)
 
 The Streamlit UI offers seven task types accessible from the sidebar:
+
+
+Available tasks 
 
 1. **Add reference photos** – Upload one or more images under a name/label
 2. **Manage reference database** – View, search, and delete existing references
@@ -126,15 +166,12 @@ The Streamlit UI offers seven task types accessible from the sidebar:
 5. **Find person in group photo** – Search for a specific person in a group
 6. **Analyze attributes** – Detect age, gender, emotion, and race
    ![Analyze UI](docs/screenshots/webui-analyse.png)
-
-
 7. **Which Parent Do You Look Like** – Compare child's face to parents
-
-
    ![Parent Comparison](docs/screenshots/webui-parents.png)
 
-### Identification and Detection
 
+
+### Identification and Detection
 
 ![Face Detection](docs/screenshots/webui-detect.png)
 
@@ -151,23 +188,36 @@ The UI includes mouse hover interactions for enhanced UX:
 ---
 
 ## Development Workflow
+
+### Standard Docker Compose
+
 ```bash
 # Enable Docker BuildKit cache for rapid iteration
 docker compose build --build-arg BUILD_MODE=dev
 
 # Hot-reload API (inside container)
 uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 3900
+
 # Hot-reload Streamlit UI
 streamlit run ui/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
 ```
 
+### Dev Container Workflow
+
+```bash
+# Start the API server
+start-api
+
+# In another terminal, start the UI
+start-ui
+```
 
 ---
 
 ## Prerequisites
 * **Docker ≥ 20.10** and **Docker Compose v2**  
-* **NVIDIA GPU** with recent drivers  
-* **nvidia-container-toolkit** – [installation guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+* For full GPU stack: **NVIDIA GPU**, drivers, and **nvidia-container-toolkit** – see the [installation guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+* For Dev Containers: VS Code **Remote-Containers** extension *or* [DevPod](https://devpod.sh)
 
 ---
 
