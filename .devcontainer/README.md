@@ -1,59 +1,48 @@
 # DeepFace Studio DevContainer
 
-This directory contains configuration for using DeepFace Studio in a development container with VS Code. The setup supports both CPU and GPU modes.
+This directory contains configuration for using DeepFace Studio in a development container with VS Code or DevPod.
 
-## Usage
+## Setup Overview
 
-### Prerequisites
+The development container provides:
 
-- VS Code with the [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
-- Docker and Docker Compose
-- For GPU mode: NVIDIA GPU with drivers and nvidia-container-toolkit installed
+- CUDA 11.8 with cuDNN 8 for GPU acceleration
+- Python 3.10 environment with all dependencies
+- Convenient scripts for starting services
+- Persistent volume for reference database
+- Automatic mounting of model weights
 
-### Opening in DevContainer
+## Prerequisites
 
-1. Clone the repository
-2. Open the folder in VS Code
-3. When prompted, click "Reopen in Container" or run the "Remote-Containers: Reopen in Container" command
+- VS Code with Remote-Containers extension or DevPod
+- Docker with NVIDIA Container Toolkit (for GPU support)
 
-### Switching Between CPU and GPU Modes
+## Getting Started
 
-The default mode is CPU. To switch to GPU mode:
-
-1. Set the `RUNTIME_MODE` environment variable to `gpu` before starting the container:
-
-```bash
-# For Linux/macOS
-export RUNTIME_MODE=gpu
-code .
-
-# For Windows PowerShell
-$env:RUNTIME_MODE="gpu"
-code .
-```
-
-2. Alternatively, modify the `devcontainer.json` file to change the default:
-
-```json
-"containerEnv": {
-  "RUNTIME_MODE": "gpu"
-}
-```
+1. Open the repository in VS Code or DevPod
+2. When prompted, click "Reopen in Container"
+3. The container will build and install all dependencies (this may take a few minutes)
 
 ## Development Workflow
 
-Once inside the container, you can:
+Once the container is running, you can:
 
-1. Start the backend API:
+1. Start the FastAPI backend:
 ```bash
 start-api
 ```
 
-2. Start the Streamlit UI in a new terminal:
+2. Start the Streamlit UI (in a new terminal):
 ```bash
 start-ui
 ```
 
-3. Access the UI at http://localhost:8501 and the API at http://localhost:3900
+3. Access the UI at http://localhost:8501 and API at http://localhost:3900
 
-Any changes you make to the code will automatically reload both services.
+Any code changes you make will automatically trigger hot-reloading of both services.
+
+## Container Structure
+
+- The entire repository is mounted at `/workspace`
+- Reference database persists in a volume at `/data/reference_db`
+- Model weights are mounted from `./deepface_weights` to `/root/.deepface/weights`

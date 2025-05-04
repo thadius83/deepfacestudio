@@ -1,0 +1,64 @@
+#!/bin/bash
+# Script for installing development tools and dependencies
+
+set -e
+
+# update system
+apt-get update
+apt-get upgrade -y
+
+# install Linux tools and add Python 3.10 repository
+apt-get install -y software-properties-common wget curl git \
+    build-essential libffi-dev gfortran \
+    libjpeg-dev libpng-dev \
+    libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev \
+    libavfilter-dev libavformat-dev libavdevice-dev ffmpeg
+
+# Add deadsnakes PPA and install Python 3.10
+add-apt-repository ppa:deadsnakes/ppa -y
+apt-get update
+apt-get install -y python3.10 python3.10-dev python3.10-venv python3.10-distutils
+
+# Create symbolic links to make python3.10 the default python3
+update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
+update-alternatives --set python3 /usr/bin/python3.10
+update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
+update-alternatives --set python /usr/bin/python3.10
+
+# Install pip for Python 3.10
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python3.10 get-pip.py
+rm get-pip.py
+
+# install Python packages
+python -m pip install --upgrade pip
+
+# Install deepface requirements
+pip install --no-cache-dir -r backend/requirements.txt -r ui/requirements.txt
+
+# Install development tools
+pip install --no-cache-dir black flake8 ipython jupyter pylint pytest
+
+# Create convenience scripts
+mkdir -p /usr/local/bin/scripts
+echo '#!/bin/bash
+cd /workspace && uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 3900' > /usr/local/bin/scripts/start-api.sh
+
+echo '#!/bin/bash
+cd /workspace && streamlit run ui/streamlit_app.py --server.port=8501 --server.address=0.0.0.0' > /usr/local/bin/scripts/start-ui.sh
+
+chmod +x /usr/local/bin/scripts/start-api.sh /usr/local/bin/scripts/start-ui.sh
+
+# Add scripts to PATH and create aliases
+echo 'export PATH="/usr/local/bin/scripts:${PATH}"' >> /etc/bash.bashrc
+echo 'alias start-api="/usr/local/bin/scripts/start-api.sh"' >> /etc/bash.bashrc
+echo 'alias start-ui="/usr/local/bin/scripts/start-ui.sh"' >> /etc/bash.bashrc
+
+# Make sure the .deepface directory has proper permissions
+mkdir -p /root/.deepface/weights
+chmod -R 777 /root/.deepface
+
+# clean up
+pip cache purge
+apt-get autoremove -y
+apt-get clean

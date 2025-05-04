@@ -1,16 +1,30 @@
 {
   "name": "DeepFace Studio Dev",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "deepface-dev",
-  "workspaceFolder": "/workspace",
-  
-  // Configure environment variable for CPU mode
-  "containerEnv": {
-    // Set to "gpu" to use GPU, "cpu" to run without GPU
-    "RUNTIME_MODE": "cpu"
+  "image": "nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04",
+  "runArgs": [
+    "--gpus=all"
+  ],
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/usr/local/cuda/bin",
+    "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64",
+    "XLA_FLAGS": "--xla_gpu_cuda_data_dir=/usr/local/cuda",
+    "PYTHONPATH": "/workspace"
   },
   
-  // Extensions to install
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+  
+  "mounts": [
+    "source=deepface-reference-db,target=/data/reference_db,type=volume",
+    "source=${localWorkspaceFolder}/deepface_weights,target=/root/.deepface/weights,type=bind"
+  ],
+  
+  "forwardPorts": [3900, 8501],
+  
+  "postCreateCommand": [
+    "bash", ".devcontainer/install-dev-tools.sh"
+  ],
+  
   "customizations": {
     "vscode": {
       "extensions": [
@@ -24,23 +38,8 @@
         "python.linting.pylintEnabled": true,
         "python.formatting.provider": "black",
         "editor.formatOnSave": true,
-        "python.defaultInterpreterPath": "/usr/local/bin/python"
+        "python.defaultInterpreterPath": "/usr/bin/python"
       }
     }
-  },
-  
-  // Run post-create commands
-  "postCreateCommand": "pip install --no-cache-dir -r backend/requirements.txt -r ui/requirements.txt",
-  
-  // Features to add to the dev container
-  "features": {
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.10"
-    },
-    "ghcr.io/devcontainers/features/git:1": {},
-    "ghcr.io/devcontainers/features/common-utils:2": {}
-  },
-  
-  // User settings to prevent permission issues
-  "remoteUser": "vscode"
+  }
 }
