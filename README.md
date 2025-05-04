@@ -113,6 +113,8 @@ curl -F "file=@portrait.jpg" http://localhost:3900/analyze
 ---
 
 ## Using the UI
+
+
 ![Main UI](docs/screenshots/webui-main.png)
 
 The Streamlit UI offers seven task types accessible from the sidebar:
@@ -124,11 +126,18 @@ The Streamlit UI offers seven task types accessible from the sidebar:
 5. **Find person in group photo** – Search for a specific person in a group
 6. **Analyze attributes** – Detect age, gender, emotion, and race
    ![Analyze UI](docs/screenshots/webui-analyse.png)
+
+
 7. **Which Parent Do You Look Like** – Compare child's face to parents
+
+
    ![Parent Comparison](docs/screenshots/webui-parents.png)
 
 ### Identification and Detection
+
+
 ![Face Detection](docs/screenshots/webui-detect.png)
+
 ![Person Finding](docs/screenshots/webui-find.png)
 
 ### Interactive Features
