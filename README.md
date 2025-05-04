@@ -2,7 +2,7 @@
 <h1 align="center">DeepFace Studio</h1>
 <p align="center">
   <strong>GPU‑enabled demonstration platform for the <a href="https://github.com/serengil/deepface">DeepFace</a> library</strong><br/>
-  <a href="https://github.com/thadius83/deepfacestudio">github.com/thadius83/deepfacestudio</a>
+  
 </p>
 <p align="center">
   <img src="https://img.shields.io/github/stars/thadius83/deepfacestudio?style=flat&color=yellow" alt="Stars"/>
@@ -53,17 +53,11 @@ It is intended as a **demo / playground** rather than a hardened production syst
 ---
 
 ## Architecture
-
 ```mermaid
 graph TD
-    UI[Streamlit UI
-    localhost:8501] -->|HTTP 3900| API[FastAPI DeepFace API
-    localhost:3900]
-    subgraph containers[Docker Compose]
-        UI --- API
-    end
-    API --> DB[(Reference DB
-    Volume)]
+    UI[Streamlit UI] -->|HTTP 3900| API[FastAPI Service]
+    UI --- API
+    API --> DB[(Reference DB)]
 ```
 
 ---
@@ -156,7 +150,9 @@ curl -F "file=@portrait.jpg" http://localhost:3900/analyze
 
 ## Using the UI
 
+
 ![Main UI](docs/screenshots/webui-main.png)
+
 
 The Streamlit UI offers seven task types accessible from the sidebar:
 
@@ -185,7 +181,6 @@ Available tasks
 
 
 ![Face Detection](docs/screenshots/webui-detect.png)
-
 
 
 ![Person Finding](docs/screenshots/webui-find.png)
