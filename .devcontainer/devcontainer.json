@@ -1,28 +1,33 @@
 {
   "name": "DeepFace Studio Dev (GPU)",
+
   "image": "nvidia/cuda:12.5.0-devel-ubuntu22.04",
   "runArgs": [
     "--gpus=all"
   ],
   "forwardAgent": true,
-  
+
   "mounts": [
     "source=deepface-reference-db,target=/data/reference_db,type=volume"
   ],
-  
+
   "remoteEnv": {
     "PYTHONPATH": "/workspace",
     "PATH": "${containerEnv:PATH}:/usr/local/cuda/bin",
     "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64",
     "XLA_FLAGS": "--xla_gpu_cuda_data_dir=/usr/local/cuda"
   },
-  
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
-  "workspaceFolder": "/workspace",
-  "remoteUser": "root",
-  
-  "forwardPorts": [3900, 8501],
-  
-  "postCreateCommand": "nvidia-smi && bash .devcontainer/install-dev-tools.sh"
 
+  // <-- point this at your `content` directory
+  "workspaceMount": "source=${localWorkspaceFolder}/content,target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+
+  "remoteUser": "root",
+
+  "forwardPorts": [
+    3900,
+    8501
+  ],
+
+  "postCreateCommand": "nvidia-smi && bash .devcontainer/install-dev-tools.sh"
 }
