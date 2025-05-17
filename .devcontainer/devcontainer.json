@@ -1,12 +1,10 @@
 {
   "name": "DeepFace Studio Dev (GPU)",
-  "build": {
-    "dockerfile": "./Dockerfile",
-    "context": ".."
-  },
+  "image": "nvidia/cuda:12.5.0-devel-ubuntu22.04",
   "runArgs": [
-    "--gpus", "all"
+    "--gpus=all"
   ],
+  "forwardAgent": true,
   
   "mounts": [
     "source=deepface-reference-db,target=/data/reference_db,type=volume",
@@ -15,8 +13,8 @@
   
   "remoteEnv": {
     "PYTHONPATH": "/workspace",
-    "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/cuda/bin",
-    "LD_LIBRARY_PATH": ":/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64",
+    "PATH": "${containerEnv:PATH}:/usr/local/cuda/bin",
+    "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64",
     "XLA_FLAGS": "--xla_gpu_cuda_data_dir=/usr/local/cuda"
   },
   
@@ -26,7 +24,27 @@
   
   "forwardPorts": [3900, 8501],
   
-  "postCreateCommand": ".devcontainer/install-dev-tools.sh"
+  "postCreateCommand": [
+    "nvidia-smi",
+    "bash", ".devcontainer/install-dev-tools.sh"
+  ],
   
-  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-ssh"
+      ],
+      "settings": {
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "python.defaultInterpreterPath": "/usr/bin/python"
+      }
+    }
+  }
 }
