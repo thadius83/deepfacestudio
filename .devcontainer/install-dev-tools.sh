@@ -11,7 +11,8 @@ apt-get install -y python3.10 python3.10-dev python3.10-distutils python3.10-ven
     build-essential libffi-dev \
     libjpeg-dev libpng-dev \
     libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev \
-    libavfilter-dev libavformat-dev libavdevice-dev ffmpeg
+    libavfilter-dev libavformat-dev libavdevice-dev ffmpeg \
+    wget curl git
 update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
 update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
 
@@ -21,12 +22,13 @@ python -m pip install --upgrade pip
 # Install development tools
 pip install --no-cache-dir black flake8 ipython jupyter pylint pytest streamlit
 
-# Install TensorFlow and ML dependencies
+# Install project requirements
+pip install --no-cache-dir -r /workspace/backend/requirements.txt 
+pip install --no-cache-dir -r /workspace/ui/requirements.txt
+
+# Install additional development dependencies
 pip install --no-cache-dir tensorflow opencv-python-headless numpy pillow pandas matplotlib
 pip install --no-cache-dir fastapi uvicorn
-
-# Make sure UI dependencies are installed
-pip install --no-cache-dir -r /workspace/ui/requirements.txt
 
 # Create convenience scripts
 mkdir -p /usr/local/bin/scripts
@@ -47,10 +49,15 @@ echo 'alias start-ui="/usr/local/bin/scripts/start-ui.sh"' >> /etc/bash.bashrc
 mkdir -p /data/reference_db
 chmod -R 777 /data/reference_db
 
-# Check deepface weights directory
-if [ ! -d "/root/.deepface/weights" ]; then
-  mkdir -p /root/.deepface/weights
-  chmod -R 777 /root/.deepface/weights
+# Setup deepface weights directory in workspace
+mkdir -p /workspace/deepface_weights
+chmod -R 777 /workspace/deepface_weights
+
+# Create proper symlinks for DeepFace
+mkdir -p /root/.deepface
+if [ ! -L "/root/.deepface/weights" ] || [ ! -e "/root/.deepface/weights" ]; then
+  rm -rf /root/.deepface/weights 2>/dev/null || true
+  ln -s /workspace/deepface_weights /root/.deepface/weights
 fi
 
 echo "Development environment setup complete!"
