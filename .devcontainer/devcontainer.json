@@ -1,7 +1,7 @@
 {
   "name": "DeepFace Studio Dev (GPU)",
   "build": {
-    "dockerfile": "Dockerfile",
+    "dockerfile": "./Dockerfile",
     "context": ".."
   },
   "runArgs": [
@@ -26,23 +26,7 @@
   
   "forwardPorts": [3900, 8501],
   
-  "postCreateCommand": ".devcontainer/install-dev-tools.sh",
+  "postCreateCommand": ".devcontainer/install-dev-tools.sh"
   
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-python.python",
-        "ms-python.vscode-pylance",
-        "ms-toolsai.jupyter",
-        "ms-azuretools.vscode-docker"
-      ],
-      "settings": {
-        "python.linting.enabled": true,
-        "python.linting.pylintEnabled": true,
-        "python.formatting.provider": "black",
-        "editor.formatOnSave": true,
-        "python.defaultInterpreterPath": "/usr/bin/python"
-      }
-    }
-  }
+  
 }
