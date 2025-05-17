@@ -1,6 +1,18 @@
 {
   "name": "DeepFace Studio Dev (GPU)",
-  "image": "nvidia/cuda:12.5.0-devel-ubuntu22.04",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "runArgs": [
+    "--gpus", "all"
+  ],
+  
+  "mounts": [
+    "source=deepface-reference-db,target=/data/reference_db,type=volume",
+    "source=${localWorkspaceFolder}/deepface_weights,target=/root/.deepface/weights,type=bind,consistency=cached"
+  ],
+  
   "remoteEnv": {
     "PYTHONPATH": "/workspace",
     "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/cuda/bin",
@@ -10,16 +22,11 @@
   
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
-  
-  "mounts": [
-    "source=deepface-reference-db,target=/data/reference_db,type=volume"
-  ],
+  "remoteUser": "root",
   
   "forwardPorts": [3900, 8501],
   
-  "postCreateCommand": [
-    "bash", ".devcontainer/install-dev-tools.sh"
-  ],
+  "postCreateCommand": ".devcontainer/install-dev-tools.sh",
   
   "customizations": {
     "vscode": {

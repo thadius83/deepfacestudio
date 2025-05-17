@@ -1,35 +1,15 @@
 #!/bin/bash
-# Script for installing development tools and dependencies for GPU setup
+# Script for setting up development tools in the GPU-enabled devcontainer
 
 set -e
 
-echo "Setting up DeepFace Studio in GPU mode"
-
-# update system
-apt-get update
-apt-get upgrade -y
-
-# Install common dependencies and Python
-apt-get install -y software-properties-common wget curl git \
-    build-essential libffi-dev \
-    libjpeg-dev libpng-dev \
-    libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev \
-    libavfilter-dev libavformat-dev libavdevice-dev ffmpeg
-
-# Install Python 3.10
-apt-get install -y python3.10 python3.10-dev python3.10-distutils python3.10-venv python3-pip
-update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
-update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
-
-# Install pip and upgrade it
-python -m pip install --upgrade pip
-
-# Install dependencies
-echo "Installing GPU-enabled dependencies"
-pip install --no-cache-dir -r backend/requirements.txt -r ui/requirements.txt
+echo "Setting up DeepFace Studio GPU development environment"
 
 # Install development tools
-pip install --no-cache-dir black flake8 ipython jupyter pylint pytest
+pip install --no-cache-dir black flake8 ipython jupyter pylint pytest streamlit
+
+# Make sure UI dependencies are installed
+pip install --no-cache-dir -r /workspace/ui/requirements.txt
 
 # Create convenience scripts
 mkdir -p /usr/local/bin/scripts
@@ -46,21 +26,14 @@ echo 'export PATH="/usr/local/bin/scripts:${PATH}"' >> /etc/bash.bashrc
 echo 'alias start-api="/usr/local/bin/scripts/start-api.sh"' >> /etc/bash.bashrc
 echo 'alias start-ui="/usr/local/bin/scripts/start-ui.sh"' >> /etc/bash.bashrc
 
-# Make sure the .deepface directory has proper permissions
-mkdir -p /root/.deepface/weights
-chmod -R 777 /root/.deepface
+# Create the reference_db directory if it doesn't exist
+mkdir -p /data/reference_db
+chmod -R 777 /data/reference_db
 
-# Create the deepface_weights directory in workspace if it doesn't exist
-mkdir -p /workspace/deepface_weights 
-chmod -R 777 /workspace/deepface_weights
-
-# If weights directory is not already a symlink, and it's empty, link it to the workspace dir
-if [ ! -L /root/.deepface/weights ] && [ ! "$(ls -A /root/.deepface/weights)" ]; then
-  rm -rf /root/.deepface/weights
-  ln -s /workspace/deepface_weights /root/.deepface/weights
+# Check deepface weights directory
+if [ ! -d "/root/.deepface/weights" ]; then
+  mkdir -p /root/.deepface/weights
+  chmod -R 777 /root/.deepface/weights
 fi
 
-# clean up
-pip cache purge
-apt-get autoremove -y
-apt-get clean
+echo "Development environment setup complete!"

@@ -11,8 +11,8 @@ This directory contains configuration files for setting up a GPU-enabled develop
 
 ## Features
 
-- CUDA 12.5.0 with Ubuntu 22.04 base image
-- Python 3.10 with GPU-enabled TensorFlow
+- Uses the same backend Dockerfile as the main application (TensorFlow GPU enabled)
+- GPU acceleration via NVIDIA runtime
 - Pre-configured for Python linting and formatting
 - Volume mounting for persistent reference database
 - Persistent storage for model weights
