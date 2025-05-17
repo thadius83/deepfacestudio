@@ -29,5 +29,6 @@
     8501
   ],
 
-  "postCreateCommand": "nvidia-smi && bash .devcontainer/install-dev-tools.sh"
+  //"postCreateCommand": "nvidia-smi && bash .devcontainer/install-dev-tools.sh"
+  "postCreateCommand": "nvidia-smi"
 }
