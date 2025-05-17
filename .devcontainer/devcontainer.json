@@ -7,8 +7,7 @@
   "forwardAgent": true,
   
   "mounts": [
-    "source=deepface-reference-db,target=/data/reference_db,type=volume",
-    "source=${localWorkspaceFolder}/deepface_weights,target=/root/.deepface/weights,type=bind,consistency=cached"
+    "source=deepface-reference-db,target=/data/reference_db,type=volume"
   ],
   
   "remoteEnv": {
