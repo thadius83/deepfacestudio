@@ -23,10 +23,7 @@
   
   "forwardPorts": [3900, 8501],
   
-  "postCreateCommand": [
-    "nvidia-smi",
-    "bash", ".devcontainer/install-dev-tools.sh"
-  ],
+  "postCreateCommand": "nvidia-smi && bash .devcontainer/install-dev-tools.sh",
   
   "customizations": {
     "vscode": {
