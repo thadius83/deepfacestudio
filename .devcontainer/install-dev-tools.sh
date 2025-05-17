@@ -5,8 +5,25 @@ set -e
 
 echo "Setting up DeepFace Studio GPU development environment"
 
+# Install Python and system dependencies
+apt-get update
+apt-get install -y python3.10 python3.10-dev python3.10-distutils python3.10-venv python3-pip \
+    build-essential libffi-dev \
+    libjpeg-dev libpng-dev \
+    libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev \
+    libavfilter-dev libavformat-dev libavdevice-dev ffmpeg
+update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
+update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
+
+# Install pip and upgrade it
+python -m pip install --upgrade pip
+
 # Install development tools
 pip install --no-cache-dir black flake8 ipython jupyter pylint pytest streamlit
+
+# Install TensorFlow and ML dependencies
+pip install --no-cache-dir tensorflow opencv-python-headless numpy pillow pandas matplotlib
+pip install --no-cache-dir fastapi uvicorn
 
 # Make sure UI dependencies are installed
 pip install --no-cache-dir -r /workspace/ui/requirements.txt
