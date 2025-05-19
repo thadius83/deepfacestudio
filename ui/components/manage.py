@@ -107,15 +107,37 @@ def manage_references_ui(api_url: str) -> None:
     end_idx = min(start_idx + items_per_page, total_filtered)
     current_page_labels = dict(list(filtered_labels.items())[start_idx:end_idx])
     
+    # Initialize selected photos session state if not exists
+    if "selected_photos" not in st.session_state:
+        st.session_state.selected_photos = {}
+    
     # Display only the current page of labels
     for label, label_data in current_page_labels.items():
         with st.expander(f"📁 {label} ({label_data.get('count', 0)} photos)"):
             # Add a delete label button with proper session state management
             action_id = f"delete_label_{label}"
             
-            if st.button(f"🗑️ Delete All Photos for '{label}'", key=action_id):
-                _set_confirmation(action_id, True)
+            # Initialize selected photos for this label if not exists
+            if label not in st.session_state.selected_photos:
+                st.session_state.selected_photos[label] = set()
             
+            # Delete actions row
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                if st.button(f"🗑️ Delete All Photos for '{label}'", key=action_id):
+                    _set_confirmation(action_id, True)
+            
+            # Add "Delete Selected" button only if there are photos
+            if label_data.get("files", []):
+                with col2:
+                    selected_count = len(st.session_state.selected_photos[label])
+                    delete_selected_action_id = f"delete_selected_{label}"
+                    
+                    if selected_count > 0:
+                        if st.button(f"🗑️ Delete Selected ({selected_count})", key=delete_selected_action_id):
+                            _set_confirmation(delete_selected_action_id, True)
+            
+            # Confirmation for delete all
             if _want_confirmation(action_id):
                 st.warning(f"⚠️ Really delete **{label}** and all its photos?")
                 col1, col2 = st.columns(2)
@@ -128,21 +150,101 @@ def manage_references_ui(api_url: str) -> None:
                         with st.spinner(f"Deleting label '{label}'..."):
                             r = requests.delete(f"{api_url}/reference/{label}", timeout=30)
                         if r.ok:
+                            # Clear selected photos for this label
+                            st.session_state.selected_photos[label] = set()
                             st.success(f"Successfully deleted label '{label}'")
                             st.rerun()
                         else:
                             st.error(f"Failed to delete label: {r.status_code}")
                             st.error(f"Response text: {r.text}")
             
-            # Display photos in a grid
+            # Confirmation for delete selected
+            if label_data.get("files", []) and _want_confirmation(f"delete_selected_{label}"):
+                selected_count = len(st.session_state.selected_photos[label])
+                st.warning(f"⚠️ Really delete **{selected_count}** selected photos for '{label}'?")
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Cancel", key=f"cancel_selected_{label}"):
+                        _set_confirmation(f"delete_selected_{label}", False)
+                with col2:
+                    if st.button("✓ Confirm Delete Selected", key=f"do_selected_{label}", type="primary"):
+                        _set_confirmation(f"delete_selected_{label}", False)  # reset the flag
+                        
+                        # Use batch delete endpoint instead of individual delete requests
+                        with st.spinner(f"Deleting {selected_count} selected photos..."):
+                            try:
+                                # Convert set of file_ids to list
+                                file_ids_list = list(st.session_state.selected_photos[label])
+                                
+                                # Use the batch delete endpoint
+                                response = requests.post(
+                                    f"{api_url}/reference/{label}/batch-delete",
+                                    json=file_ids_list,
+                                    timeout=60
+                                )
+                                
+                                # Process the response
+                                if response.status_code == 200:
+                                    result = response.json()
+                                    deleted_count = result.get("total_deleted", 0)
+                                    
+                                    if deleted_count > 0:
+                                        st.success(f"Successfully deleted {deleted_count} photos")
+                                        # Clear selected photos for this label
+                                        st.session_state.selected_photos[label] = set()
+                                        
+                                    # Show any errors that occurred
+                                    errors = result.get("errors", [])
+                                    if errors:
+                                        st.error("Some photos could not be deleted:")
+                                        for error in errors:
+                                            st.error(f"File ID {error.get('file_id')}: {error.get('error')}")
+                                    
+                                    # Only rerun if we had successful deletions
+                                    if deleted_count > 0:
+                                        st.rerun()
+                                else:
+                                    st.error(f"Batch delete failed: {response.status_code}")
+                                    st.error(f"Error: {response.text}")
+                            except Exception as e:
+                                st.error(f"Error during batch delete: {str(e)}")
+            
+            # Display photos in a grid with selection checkboxes
             files = label_data.get("files", [])
             cols = st.columns(4)  # Show 4 photos per row
+            
+            # Add "Select All" / "Deselect All" controls
+            if files:
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Select All", key=f"select_all_{label}_{st.session_state.current_page}"):
+                        # Add all file IDs for this label to selected set
+                        for file in files:
+                            st.session_state.selected_photos[label].add(file.get("id", ""))
+                        st.rerun()
+                with col2:
+                    if st.button("Deselect All", key=f"deselect_all_{label}_{st.session_state.current_page}"):
+                        # Clear selected photos for this label
+                        st.session_state.selected_photos[label] = set()
+                        st.rerun()
             
             for i, file in enumerate(files):
                 with cols[i % 4]:
                     file_id = file.get("id", "")
                     file_path = file.get("path", "")
                     file_name = file.get("filename", "")
+                    
+                    # Add selection checkbox
+                    checkbox_key = f"select_{st.session_state.current_page}_{label}_{i}_{file_id[:8]}"
+                    is_selected = file_id in st.session_state.selected_photos[label]
+                    
+                    if st.checkbox("Select", key=checkbox_key, value=is_selected):
+                        # Add to selected set
+                        st.session_state.selected_photos[label].add(file_id)
+                    else:
+                        # Remove from selected set if present
+                        if file_id in st.session_state.selected_photos[label]:
+                            st.session_state.selected_photos[label].remove(file_id)
                     
                     # Display thumbnail image
                     # We need to proxy the image through our API utility to avoid cross-origin issues
@@ -193,6 +295,9 @@ def manage_references_ui(api_url: str) -> None:
                                 with st.spinner(f"Deleting photo..."):
                                     r = requests.delete(f"{api_url}/reference/{label}/{file_id}", timeout=30)
                                 if r.ok:
+                                    # Remove from selected set if present
+                                    if file_id in st.session_state.selected_photos[label]:
+                                        st.session_state.selected_photos[label].remove(file_id)
                                     st.success(f"Deleted photo {file_id[:8]}...")
                                     st.rerun()
                                 else:

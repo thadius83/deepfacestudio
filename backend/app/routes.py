@@ -178,8 +178,14 @@ async def list_references():
     return result
 
 @router.delete("/reference/{label}/{file_id}")
-async def delete_reference(label: str, file_id: str):
-    """Delete a specific reference file."""
+async def delete_reference(label: str, file_id: str, skip_rebuild: bool = False):
+    """Delete a specific reference file.
+    
+    Args:
+        label: The label (person name) to delete from
+        file_id: The specific file ID to delete
+        skip_rebuild: If True, skip rebuilding the database (for batch operations)
+    """
     ref_dir = config.REFERENCE_DIR / label
     
     if not os.path.exists(ref_dir):
@@ -187,10 +193,13 @@ async def delete_reference(label: str, file_id: str):
     
     # Find the file with the matching ID (which is the filename without extension)
     file_found = False
+    deleted_file = None
+    
     for file in os.listdir(ref_dir):
         if file.startswith(file_id):
             file_found = True
             file_path = ref_dir / file
+            deleted_file = file
             try:
                 os.remove(file_path)
                 
@@ -198,8 +207,10 @@ async def delete_reference(label: str, file_id: str):
                 if os.path.exists(file_path):
                     raise HTTPException(500, f"Failed to delete file (still exists): {file_path}")
                 
-                # Force DB rebuild after deletion
-                rebuild_result = rebuild_reference_db()
+                # Only rebuild the database if not skipping
+                rebuild_result = None
+                if not skip_rebuild:
+                    rebuild_result = rebuild_reference_db()
                 
                 return {"deleted": f"{label}/{file}", "success": True, "db_rebuilt": rebuild_result}
             except Exception as e:
@@ -207,6 +218,48 @@ async def delete_reference(label: str, file_id: str):
     
     if not file_found:
         raise HTTPException(404, f"File not found: {file_id}")
+
+@router.post("/reference/{label}/batch-delete")
+async def batch_delete_references(label: str, file_ids: List[str]):
+    """Delete multiple reference files in a batch operation.
+    
+    Args:
+        label: The label (person name) to delete from
+        file_ids: List of file IDs to delete
+    """
+    ref_dir = config.REFERENCE_DIR / label
+    
+    if not os.path.exists(ref_dir):
+        raise HTTPException(404, f"Label not found: {label}")
+    
+    results = {
+        "success": True,
+        "deleted": [],
+        "errors": [],
+        "total_requested": len(file_ids),
+        "total_deleted": 0
+    }
+    
+    # Delete each file, but skip database rebuilding until the end
+    for file_id in file_ids:
+        try:
+            # Use the existing delete_reference function but skip rebuilds
+            await delete_reference(label, file_id, skip_rebuild=True)
+            results["deleted"].append(file_id)
+            results["total_deleted"] += 1
+        except HTTPException as e:
+            results["errors"].append({"file_id": file_id, "error": str(e.detail)})
+            results["success"] = False
+        except Exception as e:
+            results["errors"].append({"file_id": file_id, "error": str(e)})
+            results["success"] = False
+    
+    # Only rebuild the database once after all deletions
+    if results["total_deleted"] > 0:
+        rebuild_result = rebuild_reference_db()
+        results["db_rebuilt"] = rebuild_result
+    
+    return results
 
 @router.post("/reference/rebuild")
 async def force_rebuild_db():

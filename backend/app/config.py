@@ -7,6 +7,7 @@ from pathlib import Path
 # Face‑detector and recognition model
 #MODEL_NAME = "ArcFace"
 MODEL_NAME = "Facenet"  # ArcFace is not available in the current version of deepface
+#MODEL_NAME = "OpenFace"
 DETECTOR_BACKEND = "retinaface"
 
 # Threshold for deciding "same person"
