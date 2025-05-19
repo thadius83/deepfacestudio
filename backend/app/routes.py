@@ -1,20 +1,64 @@
 """
 API route handlers for DeepFace API.
 """
-from fastapi import APIRouter, File, UploadFile, HTTPException
-from fastapi.responses import FileResponse
-from typing import List
+from fastapi import APIRouter, File, UploadFile, HTTPException, Query, BackgroundTasks
+from fastapi.responses import FileResponse, JSONResponse
+from typing import List, Optional, Dict, Any
 import os
 import glob
 import shutil
 import pickle
 from pathlib import Path
+import time
 
 from . import config
 from .reference import save_reference, rebuild_reference_db
 from .face_processing import compare_faces, identify_faces, analyze_face, family_resemblance
+from .tasks import get_task_status, get_task_result, clean_old_tasks
+from .bg_operations import bg_identify_faces, bg_analyze_face, bg_compare_faces
 
 router = APIRouter()
+
+# ---------- Task management routes ----------
+@router.get("/tasks/{task_id}")
+async def get_task(task_id: str):
+    """Get the status of a background task."""
+    # Clean up old tasks periodically
+    clean_old_tasks()
+    
+    # Get the task status
+    status = get_task_status(task_id)
+    
+    if status["status"] == "unknown":
+        raise HTTPException(404, f"Task not found: {task_id}")
+    
+    return status
+
+@router.get("/tasks/{task_id}/result")
+async def get_task_result_endpoint(task_id: str):
+    """Get the result of a completed background task."""
+    # Clean up old tasks periodically
+    clean_old_tasks()
+    
+    # Get the task status
+    status = get_task_status(task_id)
+    
+    if status["status"] == "unknown":
+        raise HTTPException(404, f"Task not found: {task_id}")
+    
+    if status["status"] == "pending" or status["status"] == "running":
+        return {"status": status["status"], "message": "Task is still in progress"}
+    
+    if status["status"] == "failed":
+        raise HTTPException(500, f"Task failed: {status.get('error', 'Unknown error')}")
+    
+    # Get the task result
+    result = get_task_result(task_id)
+    
+    if result is None:
+        raise HTTPException(404, "Task result not found")
+    
+    return result
 
 # ---------- Reference image routes ----------
 @router.get("/reference/image/{label}/{file_id}")
@@ -69,11 +113,22 @@ async def reference_status():
             with open(rep_files[0], 'rb') as f:
                 rep_data = pickle.load(f)
                 # Get a sample of representation keys for debugging
-                rep_keys = list(rep_data.keys())[:5] if rep_data else []
+                if isinstance(rep_data, dict):
+                    rep_keys = list(rep_data.keys())[:5] if rep_data else []
+                    rep_count = len(rep_data)
+                elif isinstance(rep_data, list):
+                    # Handle list-type representation data
+                    rep_keys = [f"List data with {len(rep_data)} items"]
+                    rep_count = len(rep_data)
+                else:
+                    rep_keys = [f"Unknown data type: {type(rep_data)}"]
+                    rep_count = 0
         except Exception as e:
             rep_keys = [f"Error reading file: {str(e)}"]
+            rep_count = 0
     else:
         rep_keys = []
+        rep_count = 0
     
     return {
         "reference_path": ref_path,
@@ -84,7 +139,7 @@ async def reference_status():
         "representation_files": rep_files,
         "representation_file_count": len(rep_files),
         "representation_keys_sample": rep_keys,
-        "representation_entry_count": len(rep_data) if rep_data else 0
+        "representation_entry_count": rep_count
     }
 
 @router.get("/reference")
@@ -266,17 +321,91 @@ async def compare(img1: UploadFile = File(...), img2: UploadFile = File(...)):
     """Compare two faces to verify if they are the same person."""
     return await compare_faces(img1, img2)
 
+@router.post("/compare/async")
+async def compare_async(img1: UploadFile = File(...), img2: UploadFile = File(...)):
+    """Compare two faces asynchronously. Returns a task ID to check status."""
+    # Read the file content first
+    img1_bytes = await img1.read()
+    img2_bytes = await img2.read()
+    
+    # Submit the task with just the bytes
+    task_id = await bg_compare_faces(img1_bytes, img2_bytes)
+    
+    # Return the task ID for status checking
+    return {"task_id": task_id, "status": "pending"}
+
 @router.post("/identify")
-async def identify(target: UploadFile = File(...)):
-    """Identify faces in an image by comparing against the reference database."""
-    return await identify_faces(target)
+async def identify(
+    target: UploadFile = File(...), 
+    threshold: Optional[float] = Query(None, description="Match threshold (0-1, lower=better match)")
+):
+    """Identify faces in an image by comparing against the reference database.
+    
+    Args:
+        target: The uploaded image file containing one or more faces
+        threshold: Optional distance threshold (0-1, lower = more confident match)
+               Default is None, which will use the value from config (0.30)
+    """
+    # Round the threshold to 2 decimal places to avoid floating point precision issues
+    if threshold is not None:
+        try:
+            threshold = float(threshold)
+            threshold = round(threshold, 2)
+            print(f"Using threshold: {threshold}")
+        except (ValueError, TypeError):
+            print(f"Invalid threshold value: {threshold}, using default")
+            threshold = None
+    
+    return await identify_faces(target, threshold)
+
+@router.post("/identify/async")
+async def identify_async(
+    target: UploadFile = File(...), 
+    threshold: Optional[float] = Query(None, description="Match threshold (0-1, lower=better match)")
+):
+    """Identify faces asynchronously. Returns a task ID to check status."""
+    # Validate and normalize threshold
+    if threshold is not None:
+        try:
+            threshold = float(threshold)
+            threshold = round(threshold, 2)
+        except (ValueError, TypeError):
+            threshold = None
+    
+    # Read the file content first
+    image_bytes = await target.read()
+    
+    # Submit the task with just the bytes and threshold
+    task_id = await bg_identify_faces(image_bytes, threshold)
+    
+    # Return the task ID for status checking
+    return {"task_id": task_id, "status": "pending"}
 
 @router.post("/analyze")
 async def analyze(photo: UploadFile = File(...)):
     """Analyze face for attributes like age, gender, emotion, and race."""
     return await analyze_face(photo)
 
+@router.post("/analyze/async")
+async def analyze_async(photo: UploadFile = File(...)):
+    """Analyze face attributes asynchronously. Returns a task ID to check status."""
+    # Read the file content first
+    image_bytes = await photo.read()
+    
+    # Submit the task with just the bytes
+    task_id = await bg_analyze_face(image_bytes)
+    
+    # Return the task ID for status checking
+    return {"task_id": task_id, "status": "pending"}
+
 @router.post("/family-resemblance")
 async def compare_family(father: UploadFile = File(...), child: UploadFile = File(...), mother: UploadFile = File(...)):
     """Compare child's face with both parents to determine resemblance."""
     return await family_resemblance(father, child, mother)
+
+# ---------- Debug routes ----------
+@router.get("/debug/ping")
+def ping():
+    """Simple debug endpoint to test connectivity."""
+    print("PING endpoint called")
+    return {"status": "ok", "message": "API server is running"}

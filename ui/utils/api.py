@@ -8,7 +8,8 @@ def api_request(
     endpoint: str, 
     files: Union[Dict[str, Any], List[Tuple]], 
     api_url: str,
-    method: str = "post"
+    method: str = "post",
+    params: Dict[str, str] = None
 ) -> Optional[Dict]:
     """Make API request to the backend service with enhanced error handling.
     
@@ -17,6 +18,7 @@ def api_request(
         files: Dictionary or list of files to upload
         api_url: Base URL for the API
         method: HTTP method (default: post)
+        params: Optional query parameters
         
     Returns:
         JSON response or None on error
@@ -31,8 +33,10 @@ def api_request(
                 st.write(f"Files: {list(files.keys())}")
             else:
                 st.write(f"Files: {len(files)} file(s)")
+            if params:
+                st.write(f"Params: {params}")
         
-        response = requests.post(url, files=files)
+        response = requests.post(url, files=files, params=params)
         response.raise_for_status()  # Raise exception for HTTP errors
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -93,17 +97,26 @@ def add_reference_photos(label: str, files: List, api_url: str) -> Optional[Dict
                 pass
         return None
     
-def identify_faces(group_photo, api_url: str) -> Optional[List[Dict]]:
+def identify_faces(group_photo, api_url: str, threshold: float = None) -> Optional[List[Dict]]:
     """Identify all faces in a group photo against the reference database.
     
     Args:
         group_photo: File object with the group photo
         api_url: Base URL for the API
+        threshold: Optional distance threshold (0-1, lower = more confident match)
         
     Returns:
         List of face matches or None on error
     """
-    return api_request("identify", {"target": group_photo}, api_url)
+    # Use the same simple pattern as the working analyze_faces function
+    params = {}
+    if threshold is not None:
+        # Round to 2 decimal places to avoid weird floating point behavior
+        threshold = round(threshold, 2)
+        params = {"threshold": str(threshold)}
+    
+    # Just pass the file directly without any processing - like analyze_faces does
+    return api_request("identify", {"target": group_photo}, api_url, params=params)
 
 def compare_faces(img1, img2, api_url: str) -> Optional[Dict]:
     """Compare two face photos.

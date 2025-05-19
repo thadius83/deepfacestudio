@@ -20,7 +20,11 @@ def get_model(name: str):
         return _models[name]
 
 def bgr_from_upload(data: bytes):
-    """Convert raw bytes → OpenCV‑BGR ndarray, with PIL fallback for broader format support."""
+    """Convert raw bytes → OpenCV‑BGR ndarray, with PIL fallback for broader format support.
+    
+    This function ensures consistent BGR output with proper color channel handling to prevent
+    blue/purple tinting or other color matrix issues.
+    """
     # First try OpenCV's decoder (fast for JPG, PNG)
     arr = np.frombuffer(data, np.uint8)
     bgr = cv2.imdecode(arr, cv2.IMREAD_COLOR)
@@ -31,12 +35,30 @@ def bgr_from_upload(data: bytes):
             import io
             from PIL import Image
             img = Image.open(io.BytesIO(data)).convert("RGB")
-            bgr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+            
+            # Convert from PIL's RGB format to numpy array, then to OpenCV's BGR
+            rgb_array = np.array(img)
+            bgr = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
         except Exception as e:
             raise HTTPException(415, f"Unsupported or corrupt image: {str(e)}")
     
+    # Validate and normalize the image format
     if bgr is None or bgr.size == 0:
         raise HTTPException(415, "Failed to decode image (empty or corrupt)")
+    
+    # Ensure correct data type (convert from float to uint8 if needed)
+    if bgr.dtype == np.float64 or bgr.dtype == np.float32:
+        bgr = (bgr * 255).astype(np.uint8)
+        
+    # Ensure correct color format
+    if len(bgr.shape) == 2:  # Grayscale
+        bgr = cv2.cvtColor(bgr, cv2.COLOR_GRAY2BGR)
+    elif bgr.shape[2] == 4:  # RGBA
+        bgr = cv2.cvtColor(bgr, cv2.COLOR_RGBA2BGR)
+    
+    # Verify we have a valid 3-channel BGR image
+    if len(bgr.shape) != 3 or bgr.shape[2] != 3:
+        raise HTTPException(415, f"Invalid image format: {bgr.shape}")
         
     return bgr
 

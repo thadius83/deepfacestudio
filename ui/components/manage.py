@@ -56,12 +56,59 @@ def manage_references_ui(api_url: str) -> None:
         st.warning("No reference photos found. Use the 'Add reference photos' option to add some.")
         return
     
-    # Add refresh button
-    if st.button("🔄 Refresh Database", key="refresh_database_button"):
-        st.rerun()
+    # Add search functionality
+    search_term = st.text_input("🔍 Search by label name", key="search_labels")
     
-    # Display each label with its photos
-    for label, label_data in labels.items():
+    # Items per page selector
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        items_per_page_options = [10, 20, 50]
+        items_per_page = st.selectbox(
+            "Items per page:", 
+            options=items_per_page_options,
+            index=0,
+            key="items_per_page"
+        )
+    
+    with col2:
+        # Add refresh button
+        if st.button("🔄 Refresh Database", key="refresh_database_button"):
+            st.rerun()
+    
+    # Filter labels based on search term
+    filtered_labels = {k: v for k, v in labels.items() 
+                      if search_term.lower() in k.lower()}
+    
+    # Pagination logic
+    total_filtered = len(filtered_labels)
+    total_pages = max(1, (total_filtered + items_per_page - 1) // items_per_page)
+    
+    # Current page (stored in session state)
+    if "current_page" not in st.session_state:
+        st.session_state.current_page = 1
+    
+    # Ensure current page is valid after filtering
+    if st.session_state.current_page > total_pages:
+        st.session_state.current_page = total_pages
+    
+    # Pagination controls
+    col1, col2, col3 = st.columns([1, 3, 1])
+    with col1:
+        if st.button("◀ Previous", disabled=(st.session_state.current_page <= 1), key="prev_page"):
+            st.session_state.current_page -= 1
+    with col3:
+        if st.button("Next ▶", disabled=(st.session_state.current_page >= total_pages), key="next_page"):
+            st.session_state.current_page += 1
+    with col2:
+        st.write(f"Page {st.session_state.current_page} of {total_pages} (Showing {total_filtered} of {total_labels} labels)")
+    
+    # Get current page entries
+    start_idx = (st.session_state.current_page - 1) * items_per_page
+    end_idx = min(start_idx + items_per_page, total_filtered)
+    current_page_labels = dict(list(filtered_labels.items())[start_idx:end_idx])
+    
+    # Display only the current page of labels
+    for label, label_data in current_page_labels.items():
         with st.expander(f"📁 {label} ({label_data.get('count', 0)} photos)"):
             # Add a delete label button with proper session state management
             action_id = f"delete_label_{label}"
@@ -128,7 +175,8 @@ def manage_references_ui(api_url: str) -> None:
                     st.text(f"ID: {file_id[:8]}...")
                     
                     # Add delete button for individual photo with session state pattern
-                    photo_action_id = f"delete_photo_{file_id}"
+                    # Use a completely unique key by including page number and item index to prevent collisions
+                    photo_action_id = f"delete_photo_{st.session_state.current_page}_{label}_{i}_{file_id[:8]}"
                     
                     if st.button("🗑️ Delete", key=photo_action_id):
                         _set_confirmation(photo_action_id, True)

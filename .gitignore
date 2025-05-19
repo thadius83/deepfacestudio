@@ -4,8 +4,8 @@
 deepface_weights/
 reference_db_backup/
 # Generated files
-data/
-imdb/
+data/*
+imdb/*
 # Python
 __pycache__/
 *.py[cod]

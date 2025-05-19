@@ -10,7 +10,7 @@ MODEL_NAME = "Facenet"  # ArcFace is not available in the current version of dee
 DETECTOR_BACKEND = "retinaface"
 
 # Threshold for deciding "same person"
-IDENTITY_THRESHOLD = 0.60  # empirical default for ArcFace
+IDENTITY_THRESHOLD = 0.30  # Default 70% confidence (1.0 - 0.3 = 0.7)
 
 # Where reference images are stored (mapped as a volume in docker‑compose)
 REFERENCE_DIR = Path("/data/reference_db")

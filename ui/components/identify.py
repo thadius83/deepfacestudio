@@ -22,19 +22,60 @@ def identify_group_ui(api_url: str) -> None:
     Upload a group photo to identify people from your reference database.
     """)
     
-    # Form inputs
+    # Form inputs - Use a simpler approach like the analyze component
     img_file = st.file_uploader("Group photo", type=SUPPORTED_FORMATS, key="identify_group_uploader")
+    
+    # Add confidence threshold slider with percentage values (0-100%)
+    st.write("Adjust match confidence threshold:")
+    confidence_percent = st.slider(
+        "Match Confidence",
+        min_value=0,
+        max_value=100,
+        value=70,  # Default to 70% confidence
+        step=5,
+        format="%d%%",  # Display as percentage
+        help="Only show matches with confidence above this threshold (higher = fewer false positives)"
+    )
     
     # Form validation
     if not img_file or not st.button("Detect & Match", key="identify_group_button"):
         return
     
-    # Process identification
-    with st.spinner("Identifying faces..."):
-        result = identify_faces(img_file, api_url)
+    # Convert percentage confidence threshold to distance threshold (1.0 - confidence/100)
+    confidence_decimal = confidence_percent / 100.0
+    distance_threshold = 1.0 - confidence_decimal
+    
+    # Process identification with async API
+    with st.spinner("Starting face identification..."):
+        # Import the async API utilities
+        from utils.async_api import identify_faces_async, wait_for_task_completion
+        
+        # Submit the job asynchronously
+        task_result = identify_faces_async(img_file, api_url, threshold=distance_threshold)
+        
+        if "error" in task_result:
+            st.error(f"Error submitting task: {task_result['error']}")
+            return
+            
+        if "task_id" not in task_result:
+            st.error("No task ID returned from server")
+            return
+            
+        # Show task ID for reference
+        with st.expander("Task Details", expanded=False):
+            st.write(f"Task ID: {task_result['task_id']}")
+            st.write(f"Initial status: {task_result['status']}")
+        
+        # Wait for the task to complete with a progress bar
+        result = wait_for_task_completion(
+            task_id=task_result['task_id'],
+            api_url=api_url,
+            timeout=300,  # 5 minutes timeout
+            polling_interval=0.5
+        )
         
         if not result:
-            st.error("No faces were detected or there was an API error.")
+            st.error("No faces were detected or processing failed.")
             return
             
         # Display results summary
