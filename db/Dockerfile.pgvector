@@ -1,0 +1,37 @@
+# Dockerfile.pgvector
+FROM postgres:15
+
+USER root
+
+# 1) install ca-certificates and wget so we can add the PGDG apt repo
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      wget \
+ \
+ # 2) add the PostgreSQL Global Development Group repo for bookworm (which has v15)
+ && echo 'deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main' \
+      > /etc/apt/sources.list.d/pgdg.list \
+ && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+      | apt-key add - \
+ \
+ # 3) now install build-tools, server-dev, and git
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
+      build-essential \
+      postgresql-server-dev-15 \
+      git \
+ \
+ # 4) build & install pgvector
+ && git clone --depth 1 https://github.com/pgvector/pgvector.git /tmp/pgvector \
+ && cd /tmp/pgvector \
+ && make install \
+ \
+ # 5) clean up
+ && cd / \
+ && rm -rf /tmp/pgvector \
+ && apt-get purge -y build-essential git \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
+USER postgres
