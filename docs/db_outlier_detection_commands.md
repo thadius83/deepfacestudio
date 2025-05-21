@@ -57,6 +57,7 @@ python tools/generate_embeddings_db.py \
 | `--no-viz`             | Disable PNG visualisations                          | False   |
 | `--delete`             | Delete outliers after copying                       | False   |
 | `--force-delete`       | Skip confirmation prompt                            | False   |
+| `--dry-run`            | Analyze and generate reports but don't copy/delete files | False   |
 | `--recompute`          | Ignore existing DB flags and recompute              | False   |
 | `--list-folders`       | List all labels with image counts                   | False   |
 | `--min-images`         | Skip labels with fewer images                       | 5       |
@@ -69,6 +70,10 @@ python tools/db_outlier_detection.py --folder-label harrison_ford
 # Stricter threshold & delete outliers
 python tools/db_outlier_detection.py \
   --folder-label harrison_ford --threshold 2.5 --delete
+
+# Dry run - analyze but don't copy/delete any files
+python tools/db_outlier_detection.py \
+  --folder-label harrison_ford --dry-run
 ```
 
 ### All-labels Examples

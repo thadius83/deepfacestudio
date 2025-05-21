@@ -81,7 +81,8 @@ def analyze_embeddings_from_db(
     should_delete_outliers: bool = False,
     force_delete: bool = False,
     preserve_structure: bool = True,
-    recompute: bool = False
+    recompute: bool = False,
+    dry_run: bool = False
 ) -> Tuple[Dict[str, bool], List[str]]:
     """
     Analyze embeddings from the database to find potential outliers.
@@ -207,22 +208,31 @@ def analyze_embeddings_from_db(
     # 8. Copy outliers to review folder (only those that still exist)
     review_folder = output_path / "outliers"
     outliers_subset = {p: True for p in outlier_files}
-    copied_files = copy_outliers(
-        outliers_subset,
-        str(review_folder),
-        preserve_structure=preserve_structure,
-    )
+    
+    if dry_run:
+        logger.info(f"DRY-RUN: Would copy {len(outlier_files)} outlier files to {review_folder}")
+        copied_files = outlier_files  # Pretend we copied them for reporting purposes
+    else:
+        copied_files = copy_outliers(
+            outliers_subset,
+            str(review_folder),
+            preserve_structure=preserve_structure,
+        )
     
     # 9. Delete outliers if requested
     deleted_files = []
     if should_delete_outliers and copied_files:
-        deleted_files = delete_outliers(copied_files, force=force_delete)
+        if dry_run:
+            logger.info(f"DRY-RUN: Would delete {len(copied_files)} outlier files")
+            # No deleted_files list when in dry run mode
+        else:
+            deleted_files = delete_outliers(copied_files, force=force_delete)
 
-        # Also remove their embeddings from the database to keep things in sync
-        if deleted_files:
-            from backend.app.db import delete_embeddings  # local import to avoid circular deps
-            removed = delete_embeddings(deleted_files)
-            logger.info(f"Removed {removed} embeddings from database")
+            # Also remove their embeddings from the database to keep things in sync
+            if deleted_files:
+                from backend.app.db import delete_embeddings  # local import to avoid circular deps
+                removed = delete_embeddings(deleted_files)
+                logger.info(f"Removed {removed} embeddings from database")
     
     # 10. Generate report
     generate_report(
@@ -264,7 +274,8 @@ def process_all_folders(
     force_delete: bool = False,
     preserve_structure: bool = True,
     recompute: bool = False,
-    min_images: int = 5
+    min_images: int = 5,
+    dry_run: bool = False
 ) -> Dict[str, Dict[str, bool]]:
     """
     Process all folder labels in the database.
@@ -419,6 +430,10 @@ def main():
     parser.add_argument("--force-delete", action="store_true", dest="force", 
                         help="Skip confirmation prompt when deleting outliers")
     
+    # Analysis options
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Analyze and report outliers but don't copy or delete any files")
+    
     # DB options
     parser.add_argument("--recompute", action="store_true", 
                         help="Recompute outliers even if already marked")
@@ -455,7 +470,8 @@ def main():
             visualization=args.visualization,
             should_delete_outliers=args.delete,
             force_delete=args.force,
-            recompute=args.recompute
+            recompute=args.recompute,
+            dry_run=args.dry_run
         )
     else:
         # Process all folders
@@ -474,7 +490,8 @@ def main():
             should_delete_outliers=args.delete,
             force_delete=args.force,
             recompute=args.recompute,
-            min_images=args.min_images
+            min_images=args.min_images,
+            dry_run=args.dry_run
         )
     
     # Print elapsed time
