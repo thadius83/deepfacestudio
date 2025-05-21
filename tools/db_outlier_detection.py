@@ -345,7 +345,8 @@ def process_all_folders(
             should_delete_outliers=should_delete_outliers,
             force_delete=force_delete,
             preserve_structure=preserve_structure,
-            recompute=recompute
+            recompute=recompute,
+            dry_run=dry_run
         )
         
         # Record results
